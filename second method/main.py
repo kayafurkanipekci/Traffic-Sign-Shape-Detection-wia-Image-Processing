@@ -5,7 +5,7 @@ import shutil
 import matplotlib.pyplot as plt
 
 def clean_output_folder(output_folder):
-    """To remove previous classification outputs"""
+    """Remove all files in the output folder"""
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
     os.makedirs(output_folder)
@@ -54,7 +54,7 @@ def classify_traffic_symbols(input_folder, output_folder):
         # Processing steps
         # Tried to use different thresholding methods
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        blurred = cv2.GaussianBlur(gray, (5, 5), 1)
         
         methods = [
             ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]),
@@ -95,6 +95,7 @@ def classify_traffic_symbols(input_folder, output_folder):
         best_contour = None
         best_thresh = None
         best_edges = None
+        best_score = 0
         
         # Loop over each thresholding method
         for idx, (method_name, thresh) in enumerate(methods, start=1):
@@ -113,24 +114,22 @@ def classify_traffic_symbols(input_folder, output_folder):
             
             # Edge detection results
             plt.subplot(3, 4, idx + 7)
-            plt.title(f'5.{idx}. Edge Detection ({method_name})')
+            plt.title(f'5.{idx}. Kenar Tespiti ({method_name})')
             plt.imshow(edges, cmap='gray')
             plt.axis('off')
             
-            # Tried to find the best contour for largest area method
+            # Tried to find the best contour for best quality edges method
             if contours:
                 for contour in contours:
-                    area = cv2.contourArea(contour)
+                    quality_score = evaluate_contour_quality(contour, image.shape[:2])
                     shape, vertices = detect_shape(contour)
                     
-                    if area > largest_area:
-                        largest_area = area
+                    if quality_score > best_score:
+                        best_score = quality_score
                         best_shape = shape
                         best_vertices = vertices
                         best_method_name = method_name
                         best_contour = contour
-                        best_thresh = thresh
-                        best_edges = edges
         
         if best_contour is None:
             print(f"Couldn't Find Contour: {filename}")
@@ -153,6 +152,39 @@ def classify_traffic_symbols(input_folder, output_folder):
         shutil.copy(image_path, output_path)
     
     print("Classification Completed!")
+
+def evaluate_contour_quality(contour, image_shape):
+    """Evaluate the quality of a contour based on its area and perimeter"""
+
+    area = cv2.contourArea(contour)
+    perimeter = cv2.arcLength(contour, True)
+    
+    # Regularity of shape (closer to 1 means more regular)
+    circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
+    
+    # Center distance
+    moments = cv2.moments(contour)
+    if moments['m00'] != 0:
+        cx = moments['m10'] / moments['m00']
+        cy = moments['m01'] / moments['m00']
+        center_dist = np.sqrt((cx - image_shape[1]/2)**2 + (cy - image_shape[0]/2)**2)
+        center_score = 1 - (center_dist / (np.sqrt(image_shape[0]**2 + image_shape[1]**2)/2))
+    else:
+        center_score = 0
+    
+    # The size of the contour (not too small or too large)
+    total_area = image_shape[0] * image_shape[1]
+    area_ratio = area / total_area
+    size_score = 1 - abs(0.3 - area_ratio) if area_ratio <= 0.8 else 0
+    
+    # Total score calculation (We can adjust the weights)
+    total_score = (0.3 * circularity + 
+                  0.3 * center_score + 
+                  0.5 * size_score)
+    
+    return total_score
+
+
 
 input_folder = 'traffic_Data\\DATA\\mix'  # Input folder
 output_folder = 'classified_symbols'  # Output folder
