@@ -1,8 +1,12 @@
 import cv2
+import platform
 
 # This is to test the images or others
-
-image = cv2.imread('traffic_Data\\DATA\\mix\\038_0001.png')
+image: cv2.typing.MatLike
+if platform.system() == 'Windows':
+    image = cv2.imread('traffic_Data\\DATA\\mix\\038_0001.png')
+elif platform.system() == 'Linux':
+    image = cv2.imread("traffic_Data/DATA/mix/038_0001.png")
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blur = cv2.GaussianBlur(gray, (9, 9), 1)
 canny = cv2.Canny(blur, 120, 255, 1)
