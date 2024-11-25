@@ -28,8 +28,14 @@ class Result:
         self.score = score
         self.ctr = ctr
         if self.score != 0:
+            area = cv2.contourArea(self.ctr)
             perimeter = cv2.arcLength(self.ctr, True)
-            approx = cv2.approxPolyDP(self.ctr, 0.01 * perimeter, True)
+            circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
+            if circularity >= 0.8:
+                self.shape="circle"
+                self.num_vertices=99
+                return
+            approx = cv2.approxPolyDP(self.ctr, 0.015 * perimeter, True)
             self.num_vertices = len(approx)
             match self.num_vertices:
                 case 0:

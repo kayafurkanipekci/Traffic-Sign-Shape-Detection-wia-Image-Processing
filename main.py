@@ -1,8 +1,6 @@
 import os
 import platform
 import shutil
-from classifyLargest import classifyByLargest
-from  classifyQuality import classifyByQuality
 from classifyimages import classifyImages
 
 def clean_output_folder(output_folder):

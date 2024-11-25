@@ -44,8 +44,8 @@ def classifyImages(input_folder, output_folder):
         results: Mapping[str,common.Result] = {}
         for (thresh_name, thresh) in methods:
             print({thresh_name})
-            edges = cv2.Canny(thresh, 50, 150)
-            ctrs, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            edges = cv2.Canny(thresh, 60, 180)
+            ctrs, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
             ctrs = [cnt for cnt in ctrs if cv2.contourArea(cnt) > 100]
             #return best contours else return 0 0 contour
             if ctrs: 
@@ -72,9 +72,9 @@ def classifyImages(input_folder, output_folder):
         result_img = image.copy()
         best_contour:str = max(results, key=lambda k: results[k].getScore())
 
-        cv2.drawContours(result_img, results[best_contour].ctr, -1, (0,255,0), 3)
+        cv2.drawContours(result_img, results[best_contour].ctr, -1, (0,255,0), 2)
         plt.subplot(3,4,4)
-        plt.title(f'6. Final Result\n Detection Method:({best_contour})\n Edge num:{results[best_contour].getEdgeNum()}')
+        plt.title(f'6. Final Result\n Detection Method:({best_contour})\n Shape:{results[best_contour].shape}')
         plt.imshow(cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB))
         plt.axis('off')
 
@@ -103,11 +103,12 @@ def evaluate_contour_quality(contour, image_shape):
     # The size of the contour (not too small or too large)
     total_area = image_shape[0] * image_shape[1]
     area_ratio = area / total_area
-    size_score = 1 - abs(0.3 - area_ratio) if area_ratio <= 0.8 else 0
-    
+    size_score = 1 - abs(0.4 - area_ratio) if area_ratio <= 0.9 else 0
+    if circularity >= 0.8:
+        circularity*=2
     # Total score calculation (We can adjust the weights)
     total_score = (0.3 * circularity + 
                   0.3 * center_score + 
-                  0.5 * size_score)
+                  0.4 * size_score)
     print(f'circularity:{circularity} center_score:{center_score} size_score:{size_score}\n score:{total_score}')
     return total_score
