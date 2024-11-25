@@ -27,17 +27,17 @@ def classifyByQuality(input_folder, output_folder):
         # Processing steps
         # Tried to use different thresholding methods
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray,(3, 3), cv2.BORDER_WRAP)
+        blurred = cv2.GaussianBlur(gray,(3, 3), sigmaX=0, sigmaY=0)
         
         methods = [
-            ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]),
+            ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]),
             ('Adaptive Gaussian', cv2.adaptiveThreshold(blurred, 255, 
                                     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                     cv2.THRESH_BINARY_INV, 11, 2)),
             ('Adaptive Mean', cv2.adaptiveThreshold(blurred, 255, 
                                 cv2.ADAPTIVE_THRESH_MEAN_C, 
                                 cv2.THRESH_BINARY_INV, 11, 2)),
-            ('Canny', cv2.Canny(blurred, 50, 200))
+            ('Canny', cv2.Canny(blurred, 50, 150))
         ]
         
         # To visualize the results
@@ -45,7 +45,7 @@ def classifyByQuality(input_folder, output_folder):
         
         # Original image
         plt.subplot(3, 4, 1)
-        plt.title('1. Original Image')
+        plt.title(f'1. Original Image {filename}')
         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         plt.axis('off')
         
@@ -61,21 +61,32 @@ def classifyByQuality(input_folder, output_folder):
         plt.imshow(blurred, cmap='gray')
         plt.axis('off')
         
-        largest_area = 0
         best_shape = None
         best_vertices = 0
         best_method_name = None
         best_contour = None
-        best_thresh = None
-        best_edges = None
         best_score = 0
-        
+        scores = {'Canny':0,'Otsu Binary':0,'Adaptive Gaussian':0,'Adaptive Mean':0}
+        vertices = {'Canny':0,'Otsu Binary':0,'Adaptive Gaussian':0,'Adaptive Mean':0}
         # Loop over each thresholding method
         for idx, (method_name, thresh) in enumerate(methods, start=1):
             edges = cv2.Canny(thresh, 50, 200)
             contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             contours = [cnt for cnt in contours if cv2.contourArea(cnt) > 100]
-            
+            if contours:
+                for contour in contours:
+                    quality_score = evaluate_contour_quality(contour, image.shape[:2])
+                    shape, vertice = detect_shape(contour)
+                    if scores[method_name] < quality_score:
+                        scores[method_name]=quality_score
+                        vertices[method_name]=vertice 
+                    print(f"{method_name}")
+                    if quality_score > best_score:
+                        best_score = quality_score
+                        best_shape = shape
+                        best_vertices = vertice
+                        best_method_name = method_name
+                        best_contour = contour
             # Thresholding results
             if idx == 1:
                 plt.subplot(3, 4, 4)
@@ -84,26 +95,13 @@ def classifyByQuality(input_folder, output_folder):
             plt.title(f'4.{idx}. {method_name}')
             plt.imshow(thresh, cmap='gray')
             plt.axis('off')
-            
             # Edge detection results
             plt.subplot(3, 4, idx + 7)
-            plt.title(f'5.{idx}. Kenar Tespiti ({method_name})')
+            plt.title(f'5.{idx}. Kenar Tespiti ({method_name})\n Edge Numbers:{vertices[method_name]}\n {scores[method_name]}')
             plt.imshow(edges, cmap='gray')
             plt.axis('off')
-            
             # Tried to find the best contour for best quality edges method
-            if contours:
-                for contour in contours:
-                    quality_score = evaluate_contour_quality(contour, image.shape[:2])
-                    shape, vertices = detect_shape(contour)
-                    
-                    if quality_score > best_score:
-                        best_score = quality_score
-                        best_shape = shape
-                        best_vertices = vertices
-                        best_method_name = method_name
-                        best_contour = contour
-        
+
         if best_contour is None:
             print(f"Couldn't Find Contour: {filename}")
             continue
@@ -111,7 +109,6 @@ def classifyByQuality(input_folder, output_folder):
         # Last result
         img_with_contours = image.copy()
         cv2.drawContours(img_with_contours, [best_contour], -1, (0,255,0), 3)
-        
         plt.subplot(3, 4, 12)
         plt.title(f'6. Final Result\nShape: {best_shape}\nEdge Number: {best_vertices}\nMethod: {best_method_name}')
         plt.imshow(cv2.cvtColor(img_with_contours, cv2.COLOR_BGR2RGB))
@@ -119,6 +116,7 @@ def classifyByQuality(input_folder, output_folder):
         
         plt.tight_layout()
         plt.show()
+        print('\n')
         
         # Copy the image to the related folder
         output_path = os.path.join(output_folder, best_shape, filename)
@@ -151,8 +149,8 @@ def evaluate_contour_quality(contour, image_shape):
     size_score = 1 - abs(0.3 - area_ratio) if area_ratio <= 0.8 else 0
     
     # Total score calculation (We can adjust the weights)
-    total_score = (0.3 * circularity + 
+    total_score = (0.2 * circularity + 
                   0.3 * center_score + 
-                  0.2 * size_score)
-    
+                  0.4 * size_score)
+    print(f'circularity:{circularity} center_score:{center_score} size_score:{size_score}')
     return total_score

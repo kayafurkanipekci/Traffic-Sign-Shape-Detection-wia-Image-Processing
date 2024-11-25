@@ -1,9 +1,9 @@
 import os
 import platform
 import shutil
-import cv2
 from classifyLargest import classifyByLargest
 from  classifyQuality import classifyByQuality
+from classifyimages import classifyImages
 
 def clean_output_folder(output_folder):
     """To remove previous classification outputs"""
@@ -18,7 +18,7 @@ def main():
     elif platform.system() == 'Linux':
         input_folder = 'traffic_Data/DATA/mix/'
 
-    classifyByQuality(input_folder, clean_output_folder('classified_symbols'))
+    classifyImages(input_folder, clean_output_folder('classified_symbols'))
 
 if __name__ == "__main__":
     main()

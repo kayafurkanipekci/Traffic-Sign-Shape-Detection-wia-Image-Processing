@@ -62,18 +62,29 @@ def classifyByLargest(input_folder, output_folder):
         
         largest_area = 0
         best_shape = None
-        best_vertices = 0
+        best_vertice = 0
         best_method_name = None
         best_contour = None
-        best_thresh = None
-        best_edges = None
-        
+        scores = {'Canny':0,'Otsu Binary':0,'Adaptive Gaussian':0,'Adaptive Mean':0}
+        vertices = {'Canny':0,'Otsu Binary':0,'Adaptive Gaussian':0,'Adaptive Mean':0}
         # Loop over each thresholding method
         for idx, (method_name, thresh) in enumerate(methods, start=1):
             edges = cv2.Canny(thresh, 50, 200)
             contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             contours = [cnt for cnt in contours if cv2.contourArea(cnt) > 100]
-            
+            if contours:
+                for contour in contours:
+                    area = cv2.contourArea(contour)
+                    shape, vertice = detect_shape(contour)
+                    if scores[method_name] < area: 
+                        vertices[method_name]=vertice
+                        scores[method_name]=area
+                    if area > largest_area:
+                        largest_area = area
+                        best_shape = shape
+                        best_vertice = vertice
+                        best_method_name = method_name
+                        best_contour = contour
             # Thresholding results
             if idx == 1:
                 plt.subplot(3, 4, 4)
@@ -85,22 +96,11 @@ def classifyByLargest(input_folder, output_folder):
             
             # Edge detection results
             plt.subplot(3, 4, idx + 7)
-            plt.title(f'5.{idx}. Edge Detection ({method_name})')
+            plt.title(f'5.{idx}. Edge Detection ({method_name})\n Edge Numbers:{vertices[method_name]}\n {scores[method_name]}')
             plt.imshow(edges, cmap='gray')
             plt.axis('off')
             
             # Tried to find the best contour for largest area method
-            if contours:
-                for contour in contours:
-                    area = cv2.contourArea(contour)
-                    shape, vertices = detect_shape(contour)
-                    
-                    if area > largest_area:
-                        largest_area = area
-                        best_shape = shape
-                        best_vertices = vertices
-                        best_method_name = method_name
-                        best_contour = contour
         
         if best_contour is None:
             print(f"Couldn't Find Contour: {filename}")
@@ -111,7 +111,7 @@ def classifyByLargest(input_folder, output_folder):
         cv2.drawContours(img_with_contours, [best_contour], -1, (0,255,0), 3)
         
         plt.subplot(3, 4, 12)
-        plt.title(f'6. Final Result\nShape: {best_shape}\nEdge Number: {best_vertices}\nMethod: {best_method_name}')
+        plt.title(f'6. Final Result\nShape: {best_shape}\nEdge Number: {best_vertice}\nMethod: {best_method_name}')
         plt.imshow(cv2.cvtColor(img_with_contours, cv2.COLOR_BGR2RGB))
         plt.axis('off')
         
