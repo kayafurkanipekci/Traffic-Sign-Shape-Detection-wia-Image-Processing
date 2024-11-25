@@ -7,7 +7,6 @@ import platform
 
 def classifyByQuality(input_folder, output_folder):
     """classify traffic symbols by best quality methods"""
-    clean_output_folder(output_folder)
     
     shapes = ['triangle', 'circle', 'rectangle', 'octagon', 'unknown']
     for shape in shapes:

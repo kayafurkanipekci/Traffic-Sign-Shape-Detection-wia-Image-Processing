@@ -7,7 +7,6 @@ import platform
 
 def classifyByLargest(input_folder, output_folder):
     """classify traffic symbols by largest area method"""
-    clean_output_folder(output_folder)
     
     shapes = ['triangle', 'circle', 'rectangle', 'octagon', 'unknown']
     for shape in shapes:
