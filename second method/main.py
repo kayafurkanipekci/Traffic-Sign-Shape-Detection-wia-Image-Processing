@@ -1,3 +1,4 @@
+import platform
 import cv2
 import numpy as np
 import os
@@ -186,7 +187,11 @@ def evaluate_contour_quality(contour, image_shape):
 
 
 
-input_folder = 'traffic_Data\\DATA\\mix'  # Input folder
+if platform.system() == 'Windows':
+    input_folder = 'traffic_Data\\DATA\\mix'
+elif platform.system() == 'Linux':
+    input_folder = 'traffic_Data/DATA/mix'
+
 output_folder = 'classified_symbols'  # Output folder
 
 classify_traffic_symbols(input_folder, output_folder)

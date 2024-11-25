@@ -3,6 +3,7 @@ import numpy as np
 import os
 import shutil
 import matplotlib.pyplot as plt
+import platform
 
 def clean_output_folder(output_folder):
     """To remove previous classification outputs"""
@@ -154,7 +155,10 @@ def classify_traffic_symbols(input_folder, output_folder):
     
     print("Classification Completed!")
 
-input_folder = 'traffic_Data\\DATA\\mix'  # Input folder
+if platform.system() == 'Windows':
+    input_folder = 'traffic_Data\\DATA\\mix'
+elif platform.system() == 'Linux':
+    input_folder = 'traffic_Data/DATA/mix'
 output_folder = 'classified_symbols'  # Output folder
 
 classify_traffic_symbols(input_folder, output_folder)
