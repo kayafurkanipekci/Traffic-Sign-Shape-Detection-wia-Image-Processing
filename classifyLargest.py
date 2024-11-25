@@ -3,7 +3,7 @@ import numpy as np
 import os
 import shutil
 import matplotlib.pyplot as plt
-import platform
+from common import detect_shape
 
 def classifyByLargest(input_folder, output_folder):
     """classify traffic symbols by largest area method"""
@@ -101,8 +101,6 @@ def classifyByLargest(input_folder, output_folder):
                         best_vertices = vertices
                         best_method_name = method_name
                         best_contour = contour
-                        best_thresh = thresh
-                        best_edges = edges
         
         if best_contour is None:
             print(f"Couldn't Find Contour: {filename}")

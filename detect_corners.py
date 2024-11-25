@@ -8,7 +8,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Linux':
     image = cv2.imread("traffic_Data/DATA/mix/038_0001.png")
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blur = cv2.GaussianBlur(gray, (9, 9), 1)
+blur = cv2.GaussianBlur(gray, (9, 9), cv2.BORDER_DEFAULT)
 canny = cv2.Canny(blur, 120, 255, 1)
 
 corners = cv2.goodFeaturesToTrack(canny, 4, 0.5, 50)

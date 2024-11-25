@@ -3,14 +3,15 @@ import numpy as np
 import os
 import shutil
 import matplotlib.pyplot as plt
-import platform
+from common import detect_shape
 
 def classifyByQuality(input_folder, output_folder):
     """classify traffic symbols by best quality methods"""
     
     shapes = ['triangle', 'circle', 'rectangle', 'octagon', 'unknown']
     for shape in shapes:
-        os.makedirs(os.path.join(output_folder, shape), exist_ok=True)
+        path = os.path.join(output_folder, shape)
+        os.makedirs(path, exist_ok=True)
     
     for filename in os.listdir(input_folder):
         if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
@@ -26,7 +27,7 @@ def classifyByQuality(input_folder, output_folder):
         # Processing steps
         # Tried to use different thresholding methods
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 1)
+        blurred = cv2.GaussianBlur(gray,(3, 3), cv2.BORDER_WRAP)
         
         methods = [
             ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]),
@@ -152,6 +153,6 @@ def evaluate_contour_quality(contour, image_shape):
     # Total score calculation (We can adjust the weights)
     total_score = (0.3 * circularity + 
                   0.3 * center_score + 
-                  0.5 * size_score)
+                  0.2 * size_score)
     
     return total_score
