@@ -24,36 +24,38 @@ def detect_shape(contour):
         return 'unknown', num_vertices
     
 class Result:
-    def __init__(self, score, ctr=np.array([[0,0]]).reshape((-1,1,2)).astype(np.int32)):
+    def __init__(self, method, score, ctr=np.array([[0,0]]).reshape((-1,1,2)).astype(np.int32)):
+        self.method = method
+        self.num_vertices=0
         self.score = score
         self.ctr = ctr
-        if self.score != 0:
-            area = cv2.contourArea(self.ctr)
-            perimeter = cv2.arcLength(self.ctr, True)
-            circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
-            if circularity >= 0.8:
-                self.shape="circle"
-                self.num_vertices=99
-                return
-            approx = cv2.approxPolyDP(self.ctr, 0.015 * perimeter, True)
-            self.num_vertices = len(approx)
-            match self.num_vertices:
-                case 0:
-                    self.shape="unknown"
-                case 3:
-                    self.shape='triangle'
-                case 4:
-                    self.shape='rectangle'
-                case 5:
-                    self.shape='pentagon'
-                case 6:
-                    self.shape='hexagon'
-                case 7:
-                    self.shape='heptagon'
-                case 8:
-                    self.shape='octagon'
-                case _:
-                    self.shape='circle'
+        if self.score == 0:
+            self.shape='Not Found'
+            return
+        area = cv2.contourArea(self.ctr)
+        perimeter = cv2.arcLength(self.ctr, True)
+        circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
+        if circularity >= 0.8:
+            self.shape="circle"
+            return
+        approx = cv2.approxPolyDP(self.ctr, 0.015 * perimeter, True)
+        self.num_vertices = len(approx)
+        match self.num_vertices:
+            case 3:
+                self.shape='Triangle'
+            case 4:
+                self.shape='Rectangle'
+            case 5:
+                self.shape='Pentagon'
+            case 6:
+                self.shape='Hexagon'
+            case 7:
+                self.shape='Heptagon'
+            case 8:
+                self.shape='Octagon'
+            case _:
+                self.shape='Unknown'
+        
     def getEdgeNum(self) -> int:
         if self.score == 0:
             return 0
@@ -61,7 +63,11 @@ class Result:
     def getScore(self) -> int:
         return self.score
     def __str__(self):
-        return(f'Shape{self.shape}\nEdge Num:{self.num_vertices}')
+        if self.num_vertices > 0:
+            return(f'Shape:{self.shape}\nEdge Num:{self.num_vertices}\nScore:{self.score}')
+        else:
+            return(f'Shape:{self.shape}\nScore:{self.score}')
+
 
 def init_gui(filename,image,blurred,gray):
     # To visualize the results

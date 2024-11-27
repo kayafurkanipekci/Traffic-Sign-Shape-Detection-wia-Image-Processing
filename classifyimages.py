@@ -38,12 +38,11 @@ def classifyImages(input_folder, output_folder):
             ('Adaptive Mean', cv2.adaptiveThreshold(blurred, 255, 
                                 cv2.ADAPTIVE_THRESH_MEAN_C, 
                                 cv2.THRESH_BINARY_INV, 11, 2)),
-            ('No-Filter', blurred)
+            ('No-Threshold', blurred)
         ]
         idx = 0
         results: Mapping[str,common.Result] = {}
         for (thresh_name, thresh) in methods:
-            print({thresh_name})
             edges = cv2.Canny(thresh, 60, 180)
             ctrs, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
             ctrs = [cnt for cnt in ctrs if cv2.contourArea(cnt) > 100]
@@ -52,20 +51,18 @@ def classifyImages(input_folder, output_folder):
                 for ctr in ctrs:
                     quality_score = evaluate_contour_quality(ctr, image.shape[:2])
                     if not thresh_name in results:
-                        results[thresh_name] = common.Result(quality_score,ctr)
+                        results[thresh_name] = common.Result(thresh_name,quality_score,ctr)
                     elif results[thresh_name].score <= quality_score:
-                        results[thresh_name] = common.Result(quality_score,ctr)
+                        results[thresh_name] = common.Result(thresh_name,quality_score,ctr)
             else:
-                results[thresh_name] = common.Result(0)
-            edge_num = results[thresh_name].getEdgeNum()
-            score = results[thresh_name].getScore()
+                results[thresh_name] = common.Result(thresh_name, 0)
             plt.subplot(3,4,5+idx)
             idx+=1
             plt.title(f'4.{idx}. {thresh_name}')
             plt.imshow(thresh, cmap='gray')
             plt.axis('off')
             plt.subplot(3, 4, 8+idx)
-            plt.title(f'5.{idx}. Detection Method:({thresh_name})\n Edge num:{edge_num}\n score:{score}')
+            plt.title(f'5.{idx}. Canny:({thresh_name})\n{results[thresh_name]}')
             plt.imshow(edges, cmap='gray')
             plt.axis('off')
         
@@ -74,7 +71,7 @@ def classifyImages(input_folder, output_folder):
 
         cv2.drawContours(result_img, results[best_contour].ctr, -1, (0,255,0), 2)
         plt.subplot(3,4,4)
-        plt.title(f'6. Final Result\n Detection Method:({best_contour})\n Shape:{results[best_contour].shape}')
+        plt.title(f'6. Final Result\n Canny:({best_contour})\n Shape:{results[best_contour].shape}')
         plt.imshow(cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB))
         plt.axis('off')
 
@@ -110,5 +107,4 @@ def evaluate_contour_quality(contour, image_shape):
     total_score = (0.3 * circularity + 
                   0.3 * center_score + 
                   0.4 * size_score)
-    print(f'circularity:{circularity} center_score:{center_score} size_score:{size_score}\n score:{total_score}')
     return total_score
