@@ -1,6 +1,7 @@
 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
+import detect_screen_size
 
 def detect_shape(contour):
     """Advanced function to detect the shape of a contour"""
@@ -70,8 +71,10 @@ class Result:
 
 
 def init_gui(filename,image,blurred,gray):
+    # Get the screen size
+    weight, height = detect_screen_size.detect_screen_size()
     # To visualize the results
-    plt.figure(figsize=(20, 12))
+    plt.figure(figsize=(weight, height))
     # Original image
     plt.subplot(3, 4, 1)
     plt.title(f'1. Original Image {filename}')

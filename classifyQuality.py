@@ -4,6 +4,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 from common import detect_shape
+import detect_screen_size
 
 def classifyByQuality(input_folder, output_folder):
     """classify traffic symbols by best quality methods"""
@@ -39,9 +40,10 @@ def classifyByQuality(input_folder, output_folder):
                                 cv2.THRESH_BINARY_INV, 11, 2)),
             ('Canny', cv2.Canny(blurred, 50, 150))
         ]
-        
+        # Get the screen size
+        weight, height = detect_screen_size()
         # To visualize the results
-        plt.figure(figsize=(20, 12))
+        plt.figure(figsize=(weight, height))
         
         # Original image
         plt.subplot(3, 4, 1)
@@ -121,7 +123,8 @@ def classifyByQuality(input_folder, output_folder):
         # Copy the image to the related folder
         output_path = os.path.join(output_folder, best_shape, filename)
         shutil.copy(image_path, output_path)
-    
+        
+    plt.subplots_adjust(top=0.92, hspace=0.274)    # Adjust the space between the plots
     print("Classification Completed!")
 
 def evaluate_contour_quality(contour, image_shape):

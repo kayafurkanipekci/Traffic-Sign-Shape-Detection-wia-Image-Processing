@@ -75,7 +75,9 @@ def classifyImages(input_folder, output_folder):
         plt.imshow(cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB))
         plt.axis('off')
 
-        plt.tight_layout()        
+        
+        plt.tight_layout()   
+        plt.subplots_adjust(top=0.92, hspace=0.274)    # Adjust the subplot     
         plt.show()
         print(f'{filename}\n')
 

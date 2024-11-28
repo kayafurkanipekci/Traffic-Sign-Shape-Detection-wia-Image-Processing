@@ -4,6 +4,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 from common import detect_shape
+import detect_screen_size
 
 def classifyByLargest(input_folder, output_folder):
     """classify traffic symbols by largest area method"""
@@ -39,8 +40,10 @@ def classifyByLargest(input_folder, output_folder):
             ('Canny', cv2.Canny(blurred, 50, 200))
         ]
         
+        # Get the screen size
+        weight, height = detect_screen_size.detect_screen_size()
         # To visualize the results
-        plt.figure(figsize=(20, 12))
+        plt.figure(figsize=(weight, height))
         
         # Original image
         plt.subplot(3, 4, 1)
@@ -116,6 +119,7 @@ def classifyByLargest(input_folder, output_folder):
         plt.axis('off')
         
         plt.tight_layout()
+        plt.subplots_adjust(top=0.92, hspace=0.274)    # Adjust the subplot
         plt.show()
         
         # Copy the image to the related folder
