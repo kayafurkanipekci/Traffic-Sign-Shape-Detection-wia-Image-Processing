@@ -1,3 +1,6 @@
 numpy
 matplotlib
 opencv-python
+platform
+tkinker
+shutil
