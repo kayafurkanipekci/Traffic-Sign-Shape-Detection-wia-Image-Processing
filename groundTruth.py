@@ -9,17 +9,40 @@ with open(json_file, "w") as f:
     json.dump(data, f, indent=4)
 
 coordinates = []
+line_ids = []
 image_name = None
 
 def on_click(event):
-    """Save coordinates and draw nodes/edges."""
-    global coordinates
+    """Save coordinates, dynamically update edges."""
+    global coordinates, line_ids
     x, y = event.x, event.y
     coordinates.append([x, y])
-    canvas.create_oval(x-5, y-5, x+5, y+5, fill="red", outline="black")  # Node
-    if len(coordinates) > 1:
-        canvas.create_line(coordinates[-2][0], coordinates[-2][1], x, y, fill="blue", width=2)
+    
+    canvas.create_oval(x-5, y-5, x+5, y+5, fill="red", outline="black")
+
+    for line_id in line_ids:
+        canvas.delete(line_id)
+    line_ids = []
+
+    for i in range(len(coordinates) - 1):
+        line_id = canvas.create_line(
+            coordinates[i][0], coordinates[i][1],
+            coordinates[i + 1][0], coordinates[i + 1][1],
+            fill="blue", width=3
+        )
+        line_ids.append(line_id)
+    
+
+    if len(coordinates) > 2:
+        line_id = canvas.create_line(
+            coordinates[-1][0], coordinates[-1][1],
+            coordinates[0][0], coordinates[0][1],
+            fill="blue", width=2
+        )
+        line_ids.append(line_id)
+    
     print(f"Coordinates: ({x}, {y})")
+
 
 def on_key(event):
     """Write JSON and load next image on 'Enter' key."""
