@@ -18,6 +18,6 @@ if corners is not None:
         x, y = corner.ravel()
         cv2.circle(image, (int(x), int(y)), 5, (36, 255, 12), -1)
 
-cv2.imshow('canny', canny)
+#cv2.imshow('canny', canny)
 cv2.imshow('image', image)
 cv2.waitKey()

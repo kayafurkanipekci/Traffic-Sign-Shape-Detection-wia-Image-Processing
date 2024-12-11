@@ -27,6 +27,25 @@ def classifyImages(input_folder, output_folder):
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray,(3, 3), sigmaX=0, sigmaY=0)
+        # blurred = cv2.medianBlur(gray, 3)
+        # blurred = cv2.bilateralFilter(gray, 9, 75, 75)
+        # blurred = cv2.filter2D(gray, -1, cv2.getGaussianKernel(3, 0))
+        
+        # prewitt filter:
+        
+        # kernelx = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
+        # kernely = np.array([[-1,0,1],[-1,0,1],[-1,0,1]])
+        # img_prewittx = cv2.filter2D(blurred, -1, kernelx)
+        # img_prewitty = cv2.filter2D(blurred, -1, kernely)
+        # img_prewitt = img_prewittx + img_prewitty
+        
+        # Sobel filter:
+        # soblex = cv2.Sobel(blurred, cv2.CV_64F, 1, 0, ksize=3)
+        # sobley = cv2.Sobel(blurred, cv2.CV_64F, 0, 1, ksize=3)
+        # sobel = cv2.magnitude(soblex, sobley)
+        # sobel = cv2.normalize(sobel, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        
+        
         common.init_gui(filename,image,blurred,gray)
 
         # preprocessing
@@ -39,6 +58,8 @@ def classifyImages(input_folder, output_folder):
                                 cv2.ADAPTIVE_THRESH_MEAN_C, 
                                 cv2.THRESH_BINARY_INV, 11, 2)),
             ('No-Threshold', blurred)
+            #('Prewitt', cv2.threshold(img_prewitt, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1])
+            #('Sobel', cv2.threshold(sobel, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1])
         ]
         idx = 0
         results: Mapping[str,common.Result] = {}
@@ -75,11 +96,14 @@ def classifyImages(input_folder, output_folder):
         plt.imshow(cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB))
         plt.axis('off')
 
+        shape = results[best_contour].shape
+        save_path = os.path.join(output_folder, shape, filename)
+        cv2.imwrite(save_path, result_img)
         
         plt.tight_layout()   
         plt.subplots_adjust(top=0.92, hspace=0.274)    # Adjust the subplot     
         plt.show()
-        print(f'{filename}\n')
+        print(f'{filename} saved to {shape} folder\n')
 
 def evaluate_contour_quality(contour, image_shape):
     """Evaluate the quality of a contour based on its area and perimeter"""
