@@ -26,10 +26,13 @@ def classifyByQuality(input_folder, output_folder):
             continue
         
         # Processing steps
-        # Tried to use different thresholding methods
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray,(3, 3), sigmaX=0, sigmaY=0)
+        #blurred = cv2.medianBlur(blurred, 3)
+        #blurred = cv2.bilateralFilter(blurred, 9, 75, 75)
+        #blurred = cv2.filter2D(blurred, -1, cv2.getGaussianKernel(3, 0))
         
+        # Tried to use different thresholding methods
         methods = [
             ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]),
             ('Adaptive Gaussian', cv2.adaptiveThreshold(blurred, 255, 
