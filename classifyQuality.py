@@ -32,6 +32,21 @@ def classifyByQuality(input_folder, output_folder):
         #blurred = cv2.bilateralFilter(blurred, 9, 75, 75)
         #blurred = cv2.filter2D(blurred, -1, cv2.getGaussianKernel(3, 0))
         
+        # prewitt filter:
+        
+        # kernelx = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
+        # kernely = np.array([[-1,0,1],[-1,0,1],[-1,0,1]])
+        # img_prewittx = cv2.filter2D(blurred, -1, kernelx)
+        # img_prewitty = cv2.filter2D(blurred, -1, kernely)
+        # img_prewitt = img_prewittx + img_prewitty
+        
+        # Sobel filter:
+        # soblex = cv2.Sobel(blurred, cv2.CV_64F, 1, 0, ksize=3)
+        # sobley = cv2.Sobel(blurred, cv2.CV_64F, 0, 1, ksize=3)
+        # sobel = cv2.magnitude(soblex, sobley)
+        # sobel = cv2.normalize(sobel, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        
+        
         # Tried to use different thresholding methods
         methods = [
             ('Otsu Binary', cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]),
@@ -41,7 +56,9 @@ def classifyByQuality(input_folder, output_folder):
             ('Adaptive Mean', cv2.adaptiveThreshold(blurred, 255, 
                                 cv2.ADAPTIVE_THRESH_MEAN_C, 
                                 cv2.THRESH_BINARY_INV, 11, 2)),
-            ('Canny', cv2.Canny(blurred, 50, 150))
+            ('Canny', cv2.Canny(blurred, 50, 150),)
+            #('Prewitt', cv2.threshold(img_prewitt, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1])
+            #('Sobel', cv2.threshold(sobel, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1])
         ]
         # Get the screen size
         weight, height = detect_screen_size()
